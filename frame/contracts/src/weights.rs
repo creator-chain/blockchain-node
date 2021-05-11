@@ -63,6 +63,7 @@ pub trait WeightInfo {
 	fn seal_block_number(r: u32, ) -> Weight;
 	fn seal_now(r: u32, ) -> Weight;
 	fn seal_rent_params(r: u32, ) -> Weight;
+	fn seal_rent_status(r: u32, ) -> Weight;
 	fn seal_weight_to_fee(r: u32, ) -> Weight;
 	fn seal_gas(r: u32, ) -> Weight;
 	fn seal_input(r: u32, ) -> Weight;
@@ -284,6 +285,13 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		(136_806_000 as Weight)
 			// Standard Error: 104_000
 			.saturating_add((359_911_000 as Weight).saturating_mul(r as Weight))
+			.saturating_add(T::DbWeight::get().reads(4 as Weight))
+			.saturating_add(T::DbWeight::get().writes(1 as Weight))
+	}
+	fn seal_rent_status(r: u32, ) -> Weight {
+		(174_909_000 as Weight)
+			// Standard Error: 5_598_000
+			.saturating_add((747_209_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(T::DbWeight::get().reads(4 as Weight))
 			.saturating_add(T::DbWeight::get().writes(1 as Weight))
 	}
@@ -947,6 +955,13 @@ impl WeightInfo for () {
 		(136_806_000 as Weight)
 			// Standard Error: 104_000
 			.saturating_add((359_911_000 as Weight).saturating_mul(r as Weight))
+			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
+			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
+	}
+	fn seal_rent_status(r: u32, ) -> Weight {
+		(174_909_000 as Weight)
+			// Standard Error: 5_598_000
+			.saturating_add((747_209_000 as Weight).saturating_mul(r as Weight))
 			.saturating_add(RocksDbWeight::get().reads(4 as Weight))
 			.saturating_add(RocksDbWeight::get().writes(1 as Weight))
 	}
