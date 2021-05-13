@@ -88,7 +88,7 @@ use frame_support::{
 	Parameter, storage,
 	traits::{
 		SortedMembers, Get, PalletInfo, OnNewAccount, OnKilledAccount, HandleLifetime,
-		StoredMap, EnsureOrigin, OriginTrait, Filter, MaxEncodedLen,
+		StoredMap, EnsureOrigin, OriginTrait, Filter,
 	},
 	weights::{
 		Weight, RuntimeDbWeight, DispatchInfo, DispatchClass,
@@ -206,7 +206,7 @@ pub mod pallet {
 
 		/// The user account identifier type for the runtime.
 		type AccountId: Parameter + Member + MaybeSerializeDeserialize + Debug + MaybeDisplay + Ord
-			+ Default + MaxEncodedLen;
+			+ Default;
 
 		/// Converting trait to take a source type and convert to `AccountId`.
 		///
