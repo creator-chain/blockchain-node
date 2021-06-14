@@ -4107,6 +4107,7 @@ dependencies = [
  "frame-system 2.0.1",
  "frame-system-benchmarking",
  "frame-system-rpc-runtime-api",
+ "frontier-rpc-primitives",
  "hex-literal",
  "pallet-aura",
  "pallet-balances 2.0.1",
