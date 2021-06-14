@@ -56,6 +56,8 @@ substrate-build-script-utils = { version = "2.0.0", path = "../../../utils/build
 
 # Frontier Dependencies
 frontier-consensus = { git = 'https://github.com/PureStake/frontier.git', branch = 'substrate-v2' }
+frontier-rpc = { git = 'https://github.com/PureStake/frontier.git', branch = 'substrate-v2' }
+frontier-rpc-primitives = { git = 'https://github.com/PureStake/frontier.git', branch = 'substrate-v2' }
 
 [features]
 default = []
