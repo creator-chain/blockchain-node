@@ -60,7 +60,6 @@ use sp_version::NativeVersion;
 use pallet_evm::{
 	Account as EVMAccount, FeeCalculator, EnsureAddressTruncated, HashedAddressMapping,
 };
-use codec::{Encode, Decode};
 use frontier_rpc_primitives::TransactionStatus;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use pallet_grandpa::fg_primitives;

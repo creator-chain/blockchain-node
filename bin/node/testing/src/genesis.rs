@@ -23,7 +23,7 @@ use sp_keyring::{Ed25519Keyring, Sr25519Keyring};
 use node_runtime::{
 	GenesisConfig, BalancesConfig, SessionConfig, StakingConfig, SystemConfig,
 	GrandpaConfig, IndicesConfig, ContractsConfig, SocietyConfig, wasm_binary_unwrap,
-	AccountId, StakerStatus,
+	AccountId, StakerStatus, EVMConfig, EthereumConfig,
 };
 use node_runtime::constants::currency::*;
 use sp_core::ChangesTrieConfiguration;
@@ -119,5 +119,9 @@ pub fn config_endowed(
 			max_members: 999,
 		}),
 		pallet_vesting: Some(Default::default()),
+    pallet_evm: Some(EVMConfig {
+			accounts: BTreeMap::new(),
+		}),
+    pallet_ethereum: Some(EthereumConfig {}),
 	}
 }
