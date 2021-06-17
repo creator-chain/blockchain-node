@@ -369,6 +369,12 @@ impl pallet_evm::Trait for Runtime {
 	type ChainId = LeetChainId;
 }
 
+impl pallet_ethereum::Trait for Runtime {
+	type Event = Event;
+	// This means we will never record a block author in the Ethereum-formatted blocks
+	type FindAuthor = ();
+}
+
 parameter_types! {
 	pub const TransactionByteFee: Balance = 10 * MILLICENTS;
 	pub const TargetBlockFullness: Perquintill = Perquintill::from_percent(25);
@@ -944,6 +950,7 @@ construct_runtime!(
 		Proxy: pallet_proxy::{Module, Call, Storage, Event<T>},
 		Multisig: pallet_multisig::{Module, Call, Storage, Event<T>},
     EVM: pallet_evm::{Module, Call, Storage, Config, Event<T>},
+    Ethereum: pallet_ethereum::{Module, Call, Storage, Event, Config, ValidateUnsigned},
 	}
 );
 
