@@ -56,6 +56,9 @@ use sp_runtime::traits::{
 use sp_version::RuntimeVersion;
 #[cfg(any(feature = "std", test))]
 use sp_version::NativeVersion;
+use pallet_evm::{
+	EnsureAddressTruncated, HashedAddressMapping,
+};
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use pallet_grandpa::fg_primitives;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -349,6 +352,21 @@ impl pallet_balances::Trait for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = frame_system::Module<Runtime>;
 	type WeightInfo = weights::pallet_balances::WeightInfo;
+}
+
+parameter_types! {
+	pub const LeetChainId: u64 = 1337;
+}
+
+impl pallet_evm::Trait for Runtime {
+	type FeeCalculator = ();
+	type CallOrigin = EnsureAddressTruncated;
+	type WithdrawOrigin = EnsureAddressTruncated;
+	type AddressMapping = HashedAddressMapping<BlakeTwo256>;
+	type Currency = Balances;
+	type Event = Event;
+	type Precompiles = ();
+	type ChainId = LeetChainId;
 }
 
 parameter_types! {
@@ -925,6 +943,7 @@ construct_runtime!(
 		Scheduler: pallet_scheduler::{Module, Call, Storage, Event<T>},
 		Proxy: pallet_proxy::{Module, Call, Storage, Event<T>},
 		Multisig: pallet_multisig::{Module, Call, Storage, Event<T>},
+    EVM: pallet_evm::{Module, Call, Storage, Config, Event<T>},
 	}
 );
 
