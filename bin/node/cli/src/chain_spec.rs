@@ -25,7 +25,7 @@ use node_runtime::{
 	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, ContractsConfig, CouncilConfig,
 	DemocracyConfig,GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys, StakerStatus,
 	StakingConfig, ElectionsConfig, IndicesConfig, SocietyConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, wasm_binary_unwrap, EVMConfig,
+	TechnicalCommitteeConfig, wasm_binary_unwrap, EVMConfig, EthereumConfig,
 };
 use node_runtime::Block;
 use node_runtime::constants::currency::*;
@@ -325,6 +325,7 @@ pub fn testnet_genesis(
     pallet_evm: Some(EVMConfig {
 			accounts: BTreeMap::new(),
 		}),
+    pallet_ethereum: Some(EthereumConfig {}),
 	}
 }
 
