@@ -34,6 +34,7 @@ use sc_network::{Event, NetworkService};
 use sp_runtime::traits::Block as BlockT;
 use futures::prelude::*;
 use sc_client_api::{ExecutorProvider, RemoteBackend};
+use frontier_consensus::FrontierBlockImport;
 use sp_core::traits::BareCryptoStorePtr;
 use node_executor::Executor;
 
@@ -54,7 +55,15 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 			sc_rpc::SubscriptionTaskExecutor,
 		) -> node_rpc::IoHandler,
 		(
-			sc_consensus_babe::BabeBlockImport<Block, FullClient, FullGrandpaBlockImport>,
+			sc_consensus_babe::BabeBlockImport<
+        Block,
+        FullClient,
+        FrontierBlockImport<
+				  Block,
+				  FullGrandpaBlockImport,
+				  FullClient
+			  >,
+      >,
 			grandpa::LinkHalf<Block, FullClient, FullSelectChain>,
 			sc_consensus_babe::BabeLink<Block>,
 		),
@@ -80,7 +89,15 @@ pub fn new_partial(config: &Configuration) -> Result<sc_service::PartialComponen
 	let (grandpa_block_import, grandpa_link) = grandpa::block_import(
 		client.clone(), &(client.clone() as Arc<_>), select_chain.clone(),
 	)?;
-	let justification_import = grandpa_block_import.clone();
+  // Here we inert a piece in the block import pipeline
+	// The old pipeline was Aura -> Grandpa -> Client
+	// The new pipeline is Aura -> Frontier -> Grandpa -> Client
+	let frontier_block_import = FrontierBlockImport::new(
+		grandpa_block_import.clone(),
+		client.clone(),
+		true
+	);
+	let justification_import = frontier_block_import.clone();
 
 	let (block_import, babe_link) = sc_consensus_babe::block_import(
 		sc_consensus_babe::Config::get_or_compute(&*client)?,
