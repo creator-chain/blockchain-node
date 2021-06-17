@@ -25,11 +25,12 @@ use node_runtime::{
 	AuthorityDiscoveryConfig, BabeConfig, BalancesConfig, ContractsConfig, CouncilConfig,
 	DemocracyConfig,GrandpaConfig, ImOnlineConfig, SessionConfig, SessionKeys, StakerStatus,
 	StakingConfig, ElectionsConfig, IndicesConfig, SocietyConfig, SudoConfig, SystemConfig,
-	TechnicalCommitteeConfig, wasm_binary_unwrap,
+	TechnicalCommitteeConfig, wasm_binary_unwrap, EVMConfig,
 };
 use node_runtime::Block;
 use node_runtime::constants::currency::*;
 use sc_service::ChainType;
+use std::collections::BTreeMap;
 use hex_literal::hex;
 use sc_telemetry::TelemetryEndpoints;
 use grandpa_primitives::{AuthorityId as GrandpaId};
@@ -321,6 +322,9 @@ pub fn testnet_genesis(
 			max_members: 999,
 		}),
 		pallet_vesting: Some(Default::default()),
+    pallet_evm: Some(EVMConfig {
+			accounts: BTreeMap::new(),
+		}),
 	}
 }
 
