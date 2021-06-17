@@ -39,6 +39,7 @@ use sp_core::{
 	crypto::KeyTypeId,
 	u32_trait::{_1, _2, _3, _4},
 	OpaqueMetadata,
+  U256, H160, H256
 };
 pub use node_primitives::{AccountId, Signature};
 use node_primitives::{AccountIndex, Balance, BlockNumber, Hash, Index, Moment};
@@ -57,9 +58,10 @@ use sp_version::RuntimeVersion;
 #[cfg(any(feature = "std", test))]
 use sp_version::NativeVersion;
 use pallet_evm::{
-	EnsureAddressTruncated, HashedAddressMapping,
+	Account as EVMAccount, FeeCalculator, EnsureAddressTruncated, HashedAddressMapping,
 };
 use codec::{Encode, Decode};
+use frontier_rpc_primitives::TransactionStatus;
 use pallet_grandpa::{AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList};
 use pallet_grandpa::fg_primitives;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
@@ -1208,6 +1210,96 @@ impl_runtime_apis! {
 			encoded: Vec<u8>,
 		) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
 			SessionKeys::decode_into_raw_public_keys(&encoded)
+		}
+	}
+
+  impl frontier_rpc_primitives::EthereumRuntimeRPCApi<Block> for Runtime {
+		fn chain_id() -> u64 {
+			<Runtime as pallet_evm::Trait>::ChainId::get()
+		}
+
+		fn account_basic(address: H160) -> EVMAccount {
+			EVM::account_basic(&address)
+		}
+
+		fn gas_price() -> U256 {
+			<Runtime as pallet_evm::Trait>::FeeCalculator::min_gas_price()
+		}
+
+		fn account_code_at(address: H160) -> Vec<u8> {
+			EVM::account_codes(address)
+		}
+
+		fn author() -> H160 {
+			Ethereum::find_author()
+		}
+
+		fn storage_at(address: H160, index: U256) -> H256 {
+			let mut tmp = [0u8; 32];
+			index.to_big_endian(&mut tmp);
+			EVM::account_storages(address, H256::from_slice(&tmp[..]))
+		}
+
+		fn call(
+			from: H160,
+			data: Vec<u8>,
+			value: U256,
+			gas_limit: U256,
+			gas_price: Option<U256>,
+			nonce: Option<U256>,
+			action: pallet_ethereum::TransactionAction,
+		) -> Result<(Vec<u8>, U256), sp_runtime::DispatchError> {
+			match action {
+				pallet_ethereum::TransactionAction::Call(to) =>
+					EVM::execute_call(
+						from,
+						to,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price.unwrap_or_default(),
+						nonce,
+						false,
+					)
+					.map(|(_, ret, gas, _)| (ret, gas))
+					.map_err(|err| err.into()),
+				pallet_ethereum::TransactionAction::Create =>
+					EVM::execute_create(
+						from,
+						data,
+						value,
+						gas_limit.low_u32(),
+						gas_price.unwrap_or_default(),
+						nonce,
+						false,
+					)
+					.map(|(_, _, gas, _)| (vec![], gas))
+					.map_err(|err| err.into()),
+			}
+		}
+
+		fn current_transaction_statuses() -> Option<Vec<TransactionStatus>> {
+			Ethereum::current_transaction_statuses()
+		}
+
+		fn current_block() -> Option<pallet_ethereum::Block> {
+			Ethereum::current_block()
+		}
+
+		fn current_receipts() -> Option<Vec<pallet_ethereum::Receipt>> {
+			Ethereum::current_receipts()
+		}
+
+		fn current_all() -> (
+			Option<pallet_ethereum::Block>,
+			Option<Vec<pallet_ethereum::Receipt>>,
+			Option<Vec<TransactionStatus>>
+		) {
+			(
+				Ethereum::current_block(),
+				Ethereum::current_receipts(),
+				Ethereum::current_transaction_statuses()
+			)
 		}
 	}
 
