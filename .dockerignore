@@ -4,3 +4,7 @@ doc
 Dockerfile
 .dockerignore
 .local
+# ignore reduce size and time
+# avoid re-build docker image
+.git/
+.github/
