@@ -1,6 +1,0 @@
-chain-data/*
-!chain-data/.gitkeep
-keys
-!keys/.gitkeep
-!keys/key_example.json
-accounts/

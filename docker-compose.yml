@@ -18,12 +18,14 @@ services:
   create_chain_spec:
     container_name: create_chain_spec
     image: ${IMAGE}:${VERSION}
+    user: root
     volumes:
       - ./git-pipeline/spec-data:/creatorchain/spec-data
     command: bash -c "mkdir -p ~/spec && /usr/local/bin/creatorchain build-spec --disable-default-bootnode --chain local > /creatorchain/spec-data/custom-spec.json"
   create_raw_chain_spec:
     container_name: create_raw_chain_spec
     image: ${IMAGE}:${VERSION}
+    user: root
     volumes:
       - ./git-pipeline/spec-data:/creatorchain/spec-data
     command: bash -c "/usr/local/bin/creatorchain build-spec --chain=/creatorchain/spec-data/custom-spec.json --raw --disable-default-bootnode > /creatorchain/spec-data/custom-spec-raw.json"
