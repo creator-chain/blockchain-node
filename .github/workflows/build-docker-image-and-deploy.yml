@@ -1,0 +1,68 @@
+name: Build and run Docker image
+on:
+  push:
+    branches:
+      - dev-cc
+
+env:
+  FOLDER_SERVER: ${{ secrets.DEV_FOLDER_SERVER }}
+  FOLDER_PIPELINE: git-pipeline
+  PACKAGE_NAME: creatorchainnetwork/node
+  BRANCH_NAME: dev-cc
+  ECR_REPOSITORY: creatorchain-node
+jobs:
+  build-and-run:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-2
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+    - name: Build and push image to ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build . -t $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA"
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA
+    - name: Configure SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$SSH_KEY" > ~/.ssh/dev.key
+        chmod 600 ~/.ssh/dev.key
+        cat >>~/.ssh/config <<END
+        Host dev
+          HostName $SSH_HOST
+          User $SSH_USER
+          IdentityFile ~/.ssh/dev.key
+          StrictHostKeyChecking no
+        END
+      env:
+        SSH_USER: ${{ secrets.DEV_SSH_USER }}
+        SSH_KEY: ${{ secrets.DEV_SSH_KEY }}
+        SSH_HOST: ${{ secrets.DEV_SSH_HOST }}
+    - name: Fetch the source
+      run: ssh dev "cd $FOLDER_SERVER && git fetch --all && git checkout $BRANCH_NAME && git reset --hard origin/$BRANCH_NAME"
+    - name: Clean docker
+      run: ssh dev "docker system prune -f || true"
+    - name: Login ECR from docker
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: ssh dev "aws ecr get-login-password | docker login --username AWS --password-stdin $ECR_REGISTRY"
+    - name: Pull image docker from ECR
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        export ECR_IMAGE="$ECR_REGISTRY/$ECR_REPOSITORY:$GITHUB_SHA"
+        ssh -o ServerAliveInterval=10 dev "docker pull $ECR_IMAGE && docker image tag $ECR_IMAGE $PACKAGE_NAME:latest && docker image rm $ECR_IMAGE"
+    - name: Stops & removes container
+      run: ssh dev "cd $FOLDER_SERVER/$FOLDER_PIPELINE && docker-compose down || true"
+    - name: Start the container
+      run: ssh dev "cd $FOLDER_SERVER/$FOLDER_PIPELINE && docker-compose --env-file ./configs/.env.config up -d testnet_node"
